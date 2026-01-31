@@ -16,7 +16,10 @@ import {
   Award,
   ChevronLeft,
   ChevronRight,
-  Star
+  Star,
+  Moon,
+  Sun,
+  Pencil
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import {
@@ -69,37 +72,37 @@ const features = [
     icon: Clock,
     title: "Time-saving solutions",
     description: "Create a professional resume in minutes. Let us handle the details while you focus on your job hunt.",
-    color: "bg-blue-100 text-blue-600"
+    color: "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
   },
   {
     icon: Users,
     title: "HR-approved templates",
     description: "Templates designed with input from hiring professionals who know what works.",
-    color: "bg-purple-100 text-purple-600"
+    color: "bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400"
   },
   {
     icon: CheckCircle2,
     title: "ATS-friendly",
     description: "Beat the ATS — the system that screens resumes. Get noticed by employers!",
-    color: "bg-green-100 text-green-600"
+    color: "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400"
   },
   {
     icon: Layout,
     title: "Designs for every level",
     description: "Explore templates for your first job, a career change, or a leadership role.",
-    color: "bg-orange-100 text-orange-600"
+    color: "bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400"
   },
   {
     icon: Sparkles,
     title: "Smart suggestions",
     description: "Get guidance on keywords and content to make your resume stand out.",
-    color: "bg-pink-100 text-pink-600"
+    color: "bg-pink-100 text-pink-600 dark:bg-pink-900/30 dark:text-pink-400"
   },
   {
     icon: Shield,
     title: "Security first",
     description: "Keep your personal data protected with industry-standard security measures.",
-    color: "bg-cyan-100 text-cyan-600"
+    color: "bg-cyan-100 text-cyan-600 dark:bg-cyan-900/30 dark:text-cyan-400"
   }
 ];
 
@@ -172,6 +175,41 @@ function AnimatedCounter({ end, duration = 2000 }: { end: number; duration?: num
   return <span>{count.toLocaleString()}</span>;
 }
 
+function ThemeToggle() {
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    const stored = localStorage.getItem('theme');
+    if (stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      setIsDark(true);
+      document.documentElement.classList.add('dark');
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    setIsDark(!isDark);
+    if (isDark) {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    } else {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    }
+  };
+
+  return (
+    <Button 
+      variant="ghost" 
+      size="icon" 
+      onClick={toggleTheme}
+      data-testid="button-theme-toggle"
+      className="rounded-full"
+    >
+      {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+    </Button>
+  );
+}
+
 export default function Landing() {
   const { user, isLoading } = useAuth();
   const [testimonialIndex, setTestimonialIndex] = useState(0);
@@ -187,32 +225,41 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
-      <nav className="fixed w-full z-50 bg-white/95 backdrop-blur-md border-b border-gray-100">
+      <nav className="fixed w-full z-50 bg-background/95 backdrop-blur-md border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex justify-between items-center h-16 gap-4">
             <div className="flex items-center gap-2">
               <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white shadow-lg shadow-primary/25">
                 <FileText size={20} />
               </div>
-              <span className="font-bold text-xl tracking-tight text-slate-900">ResuMakers</span>
+              <span className="font-bold text-xl tracking-tight">ResuMakers</span>
             </div>
             <div className="hidden md:flex items-center gap-8">
-              <a href="#features" className="text-slate-600 hover:text-primary transition-colors text-sm font-medium">Features</a>
-              <a href="#templates" className="text-slate-600 hover:text-primary transition-colors text-sm font-medium">Templates</a>
-              <a href="#testimonials" className="text-slate-600 hover:text-primary transition-colors text-sm font-medium">Reviews</a>
-              <a href="#faq" className="text-slate-600 hover:text-primary transition-colors text-sm font-medium">FAQ</a>
+              <a href="#features" className="text-muted-foreground hover:text-primary transition-colors text-sm font-medium">Features</a>
+              <a href="#templates" className="text-muted-foreground hover:text-primary transition-colors text-sm font-medium">Templates</a>
+              <a href="#testimonials" className="text-muted-foreground hover:text-primary transition-colors text-sm font-medium">Reviews</a>
+              <a href="#faq" className="text-muted-foreground hover:text-primary transition-colors text-sm font-medium">FAQ</a>
             </div>
-            <div>
+            <div className="flex items-center gap-3">
+              <ThemeToggle />
               {isLoading ? (
-                <div className="w-28 h-10 bg-slate-100 rounded-lg animate-pulse" />
+                <div className="w-28 h-10 bg-muted rounded-lg animate-pulse" />
               ) : user ? (
                 <Link href="/dashboard">
-                  <Button data-testid="button-dashboard">Go to Dashboard</Button>
+                  <Button data-testid="button-dashboard">Dashboard</Button>
                 </Link>
               ) : (
-                <Button asChild data-testid="button-login">
-                  <a href="/api/login">Get Started</a>
-                </Button>
+                <>
+                  <Button variant="outline" asChild data-testid="button-login" className="hidden sm:flex">
+                    <a href="/api/login">Log in</a>
+                  </Button>
+                  <Button asChild data-testid="button-get-started-nav">
+                    <a href="/api/login">
+                      <Pencil className="w-4 h-4 mr-2" />
+                      Build my resume
+                    </a>
+                  </Button>
+                </>
               )}
             </div>
           </div>
@@ -220,151 +267,239 @@ export default function Landing() {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-28 pb-16 lg:pt-40 lg:pb-24 overflow-hidden bg-gradient-to-b from-slate-50 to-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-          <div className="absolute -top-40 right-0 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl -z-10" />
-          <div className="absolute top-60 -left-40 w-[400px] h-[400px] bg-purple-400/10 rounded-full blur-3xl -z-10" />
-
-          <div className="text-center max-w-4xl mx-auto">
+      <section className="pt-24 pb-12 lg:pt-32 lg:pb-20 overflow-hidden bg-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Left Column - Text */}
             <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+              className="max-w-xl"
             >
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 leading-tight mb-6">
-                Create a job-winning resume{" "}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-500">in minutes!</span>
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-6">
+                Create a job-winning resume in minutes!
               </h1>
-              <p className="text-lg sm:text-xl text-slate-600 mb-10 max-w-2xl mx-auto">
-                Create an ATS-friendly, professional resume with our easy builder — trusted by top recruiters worldwide.
+              <p className="text-lg text-muted-foreground mb-8">
+                Create an ATS-friendly, professional resume with our AI-powered builder — trusted by top recruiters.
               </p>
               
-              <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-                <Button size="lg" className="h-14 px-10 text-lg shadow-xl shadow-primary/30" asChild data-testid="button-get-started">
+              <div className="flex flex-wrap gap-4 mb-12">
+                <Button variant="outline" size="lg" className="h-12 px-6 rounded-full" asChild data-testid="button-improve-resume">
                   <a href={user ? "/dashboard" : "/api/login"}>
-                    Create New Resume <ArrowRight className="ml-2 h-5 w-5" />
+                    Improve my resume
                   </a>
                 </Button>
-                <Button size="lg" variant="outline" className="h-14 px-10 text-lg bg-white" data-testid="button-improve-resume" asChild>
+                <Button size="lg" className="h-12 px-6 rounded-full shadow-lg shadow-primary/30" asChild data-testid="button-create-resume">
                   <a href={user ? "/dashboard" : "/api/login"}>
-                    Improve My Resume
+                    Create new resume
                   </a>
                 </Button>
               </div>
-            </motion.div>
 
-            {/* Stats */}
-            <motion.div 
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="grid grid-cols-3 gap-4 max-w-2xl mx-auto mb-16"
-            >
-              <div className="text-center p-4">
-                <div className="text-3xl sm:text-4xl font-bold text-slate-900">
-                  <AnimatedCounter end={12848} />
-                </div>
-                <p className="text-sm text-slate-500 mt-1">resumes created today</p>
-              </div>
-              <div className="text-center p-4 border-x border-slate-200">
-                <div className="text-3xl sm:text-4xl font-bold text-primary">x2.2</div>
-                <p className="text-sm text-slate-500 mt-1">more interview invitations</p>
-              </div>
-              <div className="text-center p-4">
-                <div className="text-3xl sm:text-4xl font-bold text-green-600">+43%</div>
-                <p className="text-sm text-slate-500 mt-1">higher chance of getting a job</p>
-              </div>
-            </motion.div>
-
-            {/* Resume Preview Cards */}
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.7, delay: 0.3 }}
-              className="relative flex justify-center items-end gap-4 h-[300px] sm:h-[400px]"
-            >
-              <div className="absolute w-48 sm:w-56 h-64 sm:h-80 bg-white rounded-xl shadow-2xl border border-slate-200 -rotate-6 transform hover:rotate-0 transition-transform duration-500 overflow-hidden left-1/2 -translate-x-[140%]">
-                <div className="h-full bg-gradient-to-b from-slate-100 to-white p-4">
-                  <div className="w-12 h-12 rounded-full bg-slate-300 mb-3" />
-                  <div className="h-3 bg-slate-300 rounded mb-2 w-3/4" />
-                  <div className="h-2 bg-slate-200 rounded mb-4 w-1/2" />
-                  <div className="space-y-2">
-                    <div className="h-2 bg-slate-200 rounded w-full" />
-                    <div className="h-2 bg-slate-200 rounded w-5/6" />
-                    <div className="h-2 bg-slate-200 rounded w-4/5" />
+              {/* Stats */}
+              <div className="flex flex-wrap gap-8 sm:gap-12">
+                <div>
+                  <div className="text-2xl sm:text-3xl font-bold">
+                    <AnimatedCounter end={1284} />
                   </div>
+                  <p className="text-sm text-muted-foreground">resumes created<br />today</p>
+                </div>
+                <div>
+                  <div className="text-2xl sm:text-3xl font-bold text-primary">x2.2</div>
+                  <p className="text-sm text-muted-foreground">more interview<br />invitations</p>
+                </div>
+                <div>
+                  <div className="text-2xl sm:text-3xl font-bold text-green-600 dark:text-green-500">+43%</div>
+                  <p className="text-sm text-muted-foreground">higher chance of getting a<br />job<sup>1</sup></p>
                 </div>
               </div>
-              
-              <div className="w-56 sm:w-64 h-72 sm:h-96 bg-white rounded-xl shadow-2xl border border-slate-200 z-10 overflow-hidden transform hover:scale-105 transition-transform duration-300">
-                <div className="h-full bg-gradient-to-b from-primary/10 to-white p-4">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-14 h-14 rounded-full bg-primary/20" />
+            </motion.div>
+
+            {/* Right Column - Resume Previews */}
+            <motion.div 
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.7, delay: 0.2 }}
+              className="relative h-[500px] lg:h-[600px]"
+            >
+              {/* Main Resume - Center */}
+              <motion.div 
+                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-64 sm:w-72 z-20"
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+              >
+                <div className="bg-card rounded-lg shadow-2xl border border-border overflow-hidden">
+                  <div className="p-4 bg-card">
+                    {/* Resume Header */}
+                    <div className="text-xs font-semibold mb-1">Lucy Liu, Accountant</div>
+                    <div className="text-[8px] text-muted-foreground mb-3">New York, NY | lucy@email.com</div>
+                    
+                    {/* Summary */}
+                    <div className="mb-3">
+                      <div className="text-[7px] font-bold text-primary mb-1 uppercase tracking-wider">Summary</div>
+                      <div className="space-y-0.5">
+                        <div className="h-1 bg-muted rounded w-full" />
+                        <div className="h-1 bg-muted rounded w-11/12" />
+                        <div className="h-1 bg-muted rounded w-10/12" />
+                      </div>
+                    </div>
+                    
+                    {/* Experience */}
+                    <div className="mb-3">
+                      <div className="text-[7px] font-bold text-primary mb-1 uppercase tracking-wider">Work Experience</div>
+                      <div className="space-y-2">
+                        <div>
+                          <div className="h-1.5 bg-foreground/20 rounded w-3/4 mb-1" />
+                          <div className="space-y-0.5">
+                            <div className="h-1 bg-muted rounded w-full" />
+                            <div className="h-1 bg-muted rounded w-5/6" />
+                          </div>
+                        </div>
+                        <div>
+                          <div className="h-1.5 bg-foreground/20 rounded w-2/3 mb-1" />
+                          <div className="space-y-0.5">
+                            <div className="h-1 bg-muted rounded w-full" />
+                            <div className="h-1 bg-muted rounded w-4/5" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Education */}
                     <div>
-                      <div className="h-3 bg-primary/30 rounded mb-1 w-20" />
-                      <div className="h-2 bg-slate-200 rounded w-16" />
+                      <div className="text-[7px] font-bold text-primary mb-1 uppercase tracking-wider">Education</div>
+                      <div className="h-1.5 bg-foreground/20 rounded w-1/2 mb-1" />
+                      <div className="h-1 bg-muted rounded w-3/4" />
                     </div>
                   </div>
-                  <div className="space-y-3">
-                    <div className="h-2 bg-primary/20 rounded w-1/3 mb-4" />
-                    <div className="h-2 bg-slate-200 rounded w-full" />
-                    <div className="h-2 bg-slate-200 rounded w-5/6" />
-                    <div className="h-2 bg-slate-200 rounded w-4/5" />
-                    <div className="h-2 bg-primary/20 rounded w-1/3 mt-4 mb-2" />
-                    <div className="h-2 bg-slate-200 rounded w-full" />
-                    <div className="h-2 bg-slate-200 rounded w-3/4" />
+                </div>
+              </motion.div>
+
+              {/* Top Right Resume */}
+              <motion.div 
+                className="absolute right-0 top-0 w-48 sm:w-56 z-10"
+                initial={{ y: -20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.6, delay: 0.5 }}
+                whileHover={{ scale: 1.02, rotate: -1 }}
+              >
+                <div className="bg-card rounded-lg shadow-xl border border-border overflow-hidden">
+                  {/* Header with photo */}
+                  <div className="p-3 bg-card">
+                    <div className="flex gap-2 mb-2">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-200 to-amber-400 flex items-center justify-center text-amber-800 font-bold text-xs">AW</div>
+                      <div className="flex-1">
+                        <div className="text-[9px] font-semibold">AIDEN WILLIAMS</div>
+                        <div className="text-[7px] text-muted-foreground">Senior Developer</div>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <div className="text-[6px] font-bold text-primary mb-1">WORK EXPERIENCE</div>
+                        <div className="space-y-0.5">
+                          <div className="h-0.5 bg-muted rounded w-full" />
+                          <div className="h-0.5 bg-muted rounded w-4/5" />
+                          <div className="h-0.5 bg-muted rounded w-5/6" />
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-[6px] font-bold text-primary mb-1">SKILLS</div>
+                        <div className="flex flex-wrap gap-0.5">
+                          <div className="h-2 w-6 bg-primary/20 rounded-sm" />
+                          <div className="h-2 w-8 bg-primary/20 rounded-sm" />
+                          <div className="h-2 w-5 bg-primary/20 rounded-sm" />
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-              
-              <div className="absolute w-48 sm:w-56 h-64 sm:h-80 bg-white rounded-xl shadow-2xl border border-slate-200 rotate-6 transform hover:rotate-0 transition-transform duration-500 overflow-hidden left-1/2 translate-x-[40%]">
-                <div className="h-full bg-gradient-to-b from-purple-50 to-white p-4">
-                  <div className="w-full h-16 bg-purple-100 rounded-lg mb-3 flex items-center justify-center">
-                    <div className="w-10 h-10 rounded-full bg-purple-200" />
+              </motion.div>
+
+              {/* Bottom Left Resume */}
+              <motion.div 
+                className="absolute left-0 bottom-8 w-44 sm:w-52 z-10"
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.6, delay: 0.6 }}
+                whileHover={{ scale: 1.02, rotate: 1 }}
+              >
+                <div className="bg-card rounded-lg shadow-xl border border-border overflow-hidden">
+                  <div className="bg-slate-700 dark:bg-slate-800 p-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-full bg-slate-500" />
+                      <div>
+                        <div className="text-[8px] font-semibold text-white">MIKE CHEN</div>
+                        <div className="text-[6px] text-slate-300">Product Manager</div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="h-3 bg-purple-200 rounded mb-2 w-2/3 mx-auto" />
-                  <div className="h-2 bg-slate-200 rounded mb-4 w-1/2 mx-auto" />
-                  <div className="space-y-2">
-                    <div className="h-2 bg-slate-200 rounded w-full" />
-                    <div className="h-2 bg-slate-200 rounded w-5/6" />
-                    <div className="h-2 bg-slate-200 rounded w-4/5" />
+                  <div className="p-2 bg-card">
+                    <div className="space-y-1">
+                      <div className="h-1 bg-muted rounded w-full" />
+                      <div className="h-1 bg-muted rounded w-5/6" />
+                      <div className="h-1 bg-muted rounded w-4/5" />
+                    </div>
                   </div>
                 </div>
-              </div>
+              </motion.div>
+
+              {/* Floating Elements */}
+              <motion.div 
+                className="absolute left-4 top-20 w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center"
+                animate={{ y: [0, -10, 0] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <CheckCircle2 className="w-4 h-4 text-primary" />
+              </motion.div>
+
+              <motion.div 
+                className="absolute right-12 bottom-24 w-10 h-10 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center"
+                animate={{ y: [0, 10, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+              >
+                <Star className="w-5 h-5 text-green-600 dark:text-green-400" />
+              </motion.div>
+
+              <motion.div 
+                className="absolute left-20 bottom-4 w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center"
+                animate={{ y: [0, -8, 0] }}
+                transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+              >
+                <Sparkles className="w-3 h-3 text-purple-600 dark:text-purple-400" />
+              </motion.div>
             </motion.div>
           </div>
+        </div>
+      </section>
 
-          {/* Trusted By */}
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
-            className="mt-20 text-center"
-          >
-            <p className="text-sm text-slate-500 mb-6">Our resumes got candidates hired by top companies</p>
-            <div className="flex justify-center items-center gap-8 sm:gap-12 flex-wrap opacity-50 grayscale">
-              <div className="text-2xl font-bold text-slate-400">Google</div>
-              <div className="text-2xl font-bold text-slate-400">Microsoft</div>
-              <div className="text-2xl font-bold text-slate-400">Amazon</div>
-              <div className="text-2xl font-bold text-slate-400">Apple</div>
-              <div className="text-2xl font-bold text-slate-400">Meta</div>
-            </div>
-          </motion.div>
+      {/* Trusted By */}
+      <section className="py-8 bg-muted/30 border-y border-border">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <p className="text-sm text-center text-muted-foreground mb-6">Our resumes got candidates hired by top companies<sup>2</sup></p>
+          <div className="flex justify-center items-center gap-8 sm:gap-16 flex-wrap opacity-40">
+            <div className="text-xl sm:text-2xl font-bold">Google</div>
+            <div className="text-xl sm:text-2xl font-bold">Microsoft</div>
+            <div className="text-xl sm:text-2xl font-bold">Amazon</div>
+            <div className="text-xl sm:text-2xl font-bold">Apple</div>
+            <div className="text-xl sm:text-2xl font-bold">Meta</div>
+          </div>
         </div>
       </section>
 
       {/* Testimonials */}
-      <section id="testimonials" className="py-20 bg-slate-50">
+      <section id="testimonials" className="py-20 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">What Our Users Say</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4">What Our Users Say</h2>
             <div className="flex items-center justify-center gap-2">
               <div className="flex">
                 {[...Array(5)].map((_, i) => (
                   <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
                 ))}
               </div>
-              <span className="text-slate-600 font-medium">Excellent</span>
+              <span className="text-muted-foreground font-medium">Excellent</span>
             </div>
           </div>
 
@@ -377,14 +512,14 @@ export default function Landing() {
                 exit={{ opacity: 0, x: -50 }}
                 transition={{ duration: 0.3 }}
               >
-                <Card className="p-8 sm:p-10 bg-white">
+                <Card className="p-8 sm:p-10">
                   <div className="flex items-center gap-4 mb-6">
                     <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary to-purple-500 flex items-center justify-center text-white font-bold text-xl">
                       {testimonials[testimonialIndex].name.charAt(0)}
                     </div>
                     <div>
-                      <h4 className="font-semibold text-slate-900">{testimonials[testimonialIndex].name}</h4>
-                      <p className="text-sm text-slate-500">{testimonials[testimonialIndex].role}</p>
+                      <h4 className="font-semibold">{testimonials[testimonialIndex].name}</h4>
+                      <p className="text-sm text-muted-foreground">{testimonials[testimonialIndex].role}</p>
                     </div>
                     <div className="ml-auto flex">
                       {[...Array(testimonials[testimonialIndex].rating)].map((_, i) => (
@@ -392,8 +527,8 @@ export default function Landing() {
                       ))}
                     </div>
                   </div>
-                  <p className="text-lg text-slate-700 leading-relaxed">"{testimonials[testimonialIndex].content}"</p>
-                  <p className="text-sm text-slate-400 mt-4">{testimonials[testimonialIndex].time}</p>
+                  <p className="text-lg leading-relaxed">"{testimonials[testimonialIndex].content}"</p>
+                  <p className="text-sm text-muted-foreground mt-4">{testimonials[testimonialIndex].time}</p>
                 </Card>
               </motion.div>
             </div>
@@ -407,7 +542,7 @@ export default function Landing() {
                   <button
                     key={i}
                     onClick={() => setTestimonialIndex(i)}
-                    className={`w-2 h-2 rounded-full transition-colors ${i === testimonialIndex ? 'bg-primary' : 'bg-slate-300'}`}
+                    className={`w-2 h-2 rounded-full transition-colors ${i === testimonialIndex ? 'bg-primary' : 'bg-muted-foreground/30'}`}
                     data-testid={`button-testimonial-dot-${i}`}
                   />
                 ))}
@@ -421,14 +556,14 @@ export default function Landing() {
       </section>
 
       {/* Templates Section */}
-      <section id="templates" className="py-20 bg-white">
+      <section id="templates" className="py-20 bg-muted/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
               Resume Templates That Get You{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-500">Noticed & Hired</span>
             </h2>
-            <p className="text-slate-600 max-w-2xl mx-auto">
+            <p className="text-muted-foreground max-w-2xl mx-auto">
               Choose from our collection of professionally designed templates, optimized for ATS systems.
             </p>
           </div>
@@ -443,27 +578,27 @@ export default function Landing() {
                 viewport={{ once: true }}
                 className="group cursor-pointer"
               >
-                <div className="aspect-[3/4] bg-slate-100 rounded-xl overflow-hidden border-2 border-transparent hover:border-primary transition-all duration-300 shadow-sm hover:shadow-xl">
-                  <div className={`h-full p-3 bg-gradient-to-b ${
-                    i === 0 ? 'from-blue-50 to-white' :
-                    i === 1 ? 'from-purple-50 to-white' :
-                    i === 2 ? 'from-green-50 to-white' :
-                    i === 3 ? 'from-orange-50 to-white' :
-                    'from-pink-50 to-white'
+                <div className="aspect-[3/4] bg-card rounded-xl overflow-hidden border-2 border-transparent hover:border-primary transition-all duration-300 shadow-sm hover:shadow-xl">
+                  <div className={`h-full p-3 ${
+                    i === 0 ? 'bg-gradient-to-b from-blue-50 to-card dark:from-blue-950/30' :
+                    i === 1 ? 'bg-gradient-to-b from-purple-50 to-card dark:from-purple-950/30' :
+                    i === 2 ? 'bg-gradient-to-b from-green-50 to-card dark:from-green-950/30' :
+                    i === 3 ? 'bg-gradient-to-b from-orange-50 to-card dark:from-orange-950/30' :
+                    'bg-gradient-to-b from-pink-50 to-card dark:from-pink-950/30'
                   }`}>
                     <div className={`w-8 h-8 rounded-full mb-2 ${
-                      i === 0 ? 'bg-blue-200' :
-                      i === 1 ? 'bg-purple-200' :
-                      i === 2 ? 'bg-green-200' :
-                      i === 3 ? 'bg-orange-200' :
-                      'bg-pink-200'
+                      i === 0 ? 'bg-blue-200 dark:bg-blue-800' :
+                      i === 1 ? 'bg-purple-200 dark:bg-purple-800' :
+                      i === 2 ? 'bg-green-200 dark:bg-green-800' :
+                      i === 3 ? 'bg-orange-200 dark:bg-orange-800' :
+                      'bg-pink-200 dark:bg-pink-800'
                     }`} />
-                    <div className="h-2 bg-slate-200 rounded w-3/4 mb-1" />
-                    <div className="h-1.5 bg-slate-100 rounded w-1/2 mb-3" />
+                    <div className="h-2 bg-muted rounded w-3/4 mb-1" />
+                    <div className="h-1.5 bg-muted/50 rounded w-1/2 mb-3" />
                     <div className="space-y-1.5">
-                      <div className="h-1.5 bg-slate-100 rounded w-full" />
-                      <div className="h-1.5 bg-slate-100 rounded w-5/6" />
-                      <div className="h-1.5 bg-slate-100 rounded w-4/5" />
+                      <div className="h-1.5 bg-muted/50 rounded w-full" />
+                      <div className="h-1.5 bg-muted/50 rounded w-5/6" />
+                      <div className="h-1.5 bg-muted/50 rounded w-4/5" />
                     </div>
                   </div>
                 </div>
@@ -485,11 +620,11 @@ export default function Landing() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 bg-slate-50">
+      <section id="features" className="py-20 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">Why Choose Our Resume Builder</h2>
-            <p className="text-slate-600 max-w-2xl mx-auto">
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4">Why Choose Our Resume Builder</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
               Everything you need to create a professional, job-winning resume.
             </p>
           </div>
@@ -503,12 +638,12 @@ export default function Landing() {
                 transition={{ duration: 0.4, delay: index * 0.1 }}
                 viewport={{ once: true }}
               >
-                <Card className="p-6 h-full hover:shadow-lg transition-shadow bg-white">
+                <Card className="p-6 h-full hover:shadow-lg transition-shadow">
                   <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${feature.color}`}>
                     <feature.icon size={24} />
                   </div>
-                  <h3 className="text-lg font-semibold text-slate-900 mb-2">{feature.title}</h3>
-                  <p className="text-slate-600">{feature.description}</p>
+                  <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
+                  <p className="text-muted-foreground">{feature.description}</p>
                 </Card>
               </motion.div>
             ))}
@@ -525,11 +660,11 @@ export default function Landing() {
       </section>
 
       {/* Steps Section */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-muted/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">4 Easy Steps to Create a Resume</h2>
-            <p className="text-slate-600">Get your professional resume ready in minutes.</p>
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4">4 Easy Steps to Create a Resume</h2>
+            <p className="text-muted-foreground">Get your professional resume ready in minutes.</p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -545,8 +680,8 @@ export default function Landing() {
                 <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-primary to-purple-500 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-primary/25">
                   {step.number}
                 </div>
-                <h3 className="text-lg font-semibold text-slate-900 mb-2">{step.title}</h3>
-                <p className="text-slate-600 text-sm">{step.description}</p>
+                <h3 className="text-lg font-semibold mb-2">{step.title}</h3>
+                <p className="text-muted-foreground text-sm">{step.description}</p>
               </motion.div>
             ))}
           </div>
@@ -562,10 +697,10 @@ export default function Landing() {
       </section>
 
       {/* FAQ Section */}
-      <section id="faq" className="py-20 bg-slate-50">
+      <section id="faq" className="py-20 bg-background">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">Frequently Asked Questions</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4">Frequently Asked Questions</h2>
           </div>
 
           <Accordion type="single" collapsible className="space-y-4">
@@ -573,12 +708,12 @@ export default function Landing() {
               <AccordionItem 
                 key={index} 
                 value={`item-${index}`}
-                className="bg-white rounded-xl border px-6"
+                className="bg-card rounded-xl border px-6"
               >
-                <AccordionTrigger className="text-left font-semibold text-slate-900 hover:no-underline py-5" data-testid={`button-faq-${index}`}>
+                <AccordionTrigger className="text-left font-semibold hover:no-underline py-5" data-testid={`button-faq-${index}`}>
                   {faq.question}
                 </AccordionTrigger>
-                <AccordionContent className="text-slate-600 pb-5">
+                <AccordionContent className="text-muted-foreground pb-5">
                   {faq.answer}
                 </AccordionContent>
               </AccordionItem>
@@ -605,7 +740,7 @@ export default function Landing() {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 bg-slate-900">
+      <footer className="py-12 bg-slate-900 dark:bg-slate-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-2">
