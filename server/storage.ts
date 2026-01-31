@@ -1,38 +1,43 @@
-import { type User, type InsertUser } from "@shared/schema";
-import { randomUUID } from "crypto";
-
-// modify the interface with any CRUD methods
-// you might need
+import { resumes, type Resume, type InsertResume } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 export interface IStorage {
-  getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  // Resumes
+  getResumes(userId: string): Promise<Resume[]>;
+  getResume(id: number): Promise<Resume | undefined>;
+  createResume(resume: InsertResume): Promise<Resume>;
+  updateResume(id: number, resume: Partial<InsertResume>): Promise<Resume>;
+  deleteResume(id: number): Promise<void>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<string, User>;
-
-  constructor() {
-    this.users = new Map();
+export class DatabaseStorage implements IStorage {
+  async getResumes(userId: string): Promise<Resume[]> {
+    return await db.select().from(resumes).where(eq(resumes.userId, userId));
   }
 
-  async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+  async getResume(id: number): Promise<Resume | undefined> {
+    const [resume] = await db.select().from(resumes).where(eq(resumes.id, id));
+    return resume;
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+  async createResume(insertResume: InsertResume & { userId: string }): Promise<Resume> {
+    const [resume] = await db.insert(resumes).values(insertResume).returning();
+    return resume;
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
+  async updateResume(id: number, updateData: Partial<InsertResume>): Promise<Resume> {
+    const [resume] = await db
+      .update(resumes)
+      .set({ ...updateData, updatedAt: new Date() })
+      .where(eq(resumes.id, id))
+      .returning();
+    return resume;
+  }
+
+  async deleteResume(id: number): Promise<void> {
+    await db.delete(resumes).where(eq(resumes.id, id));
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
