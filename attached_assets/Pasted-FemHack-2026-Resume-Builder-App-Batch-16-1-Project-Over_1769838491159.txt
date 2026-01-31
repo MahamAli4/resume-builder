@@ -1,0 +1,73 @@
+FemHack 2026
+Resume Builder App(Batch-16)
+1. Project Overview 
+Project Name: Resume Builder App 
+Objective: 
+Participants must build a professional Resume Builder web application that allows users to create, preview, edit, and download resumes. The application should demonstrate responsiveUI, clean code practices, and cloud-based data storage. 
+Key Technologies 
+Frontend (any): 
+- HTML, CSS, JavaScript (ES6) 
+- React 
+- Tailwind CSS 
+- Bootstrap 
+- Custom CSS 
+Backend / Database (required): 
+- Firebase OR Supabase 
+2. Features — User Authentication 
+- Signup and Login system 
+- Email and password validation 
+- Logout functionality 
+- Optional: Google authentication 
+Resume Management — Add Resume 
+- Personal Information 
+- Education 
+- Work Experience 
+- Skills 
+- Projects / Certifications 
+- Languages 
+- Profile Summary
+- Profile image (optional) 
+All resume data must be stored in Firebase or Supabase and linked to the logged-in user. 
+View, Edit and Delete Resumes 
+- Dashboard showing all created resumes 
+- Card or grid layout 
+- Resume preview page 
+- Edit existing resume 
+- Delete resume permanently 
+- Download resume as PDF 
+Search, Filter and Templates 
+- Search resumes by title or skills 
+- Filter by template 
+- At least one professional resume template 
+- Option to switch templates 
+3. Optional Features 
+- Multiple resume templates 
+- Dark mode 
+- Drag and drop section ordering 
+- Shareable resume links 
+- Cloud synchronization 
+- Version history 
+4. UI and Code Requirements 
+- Fully responsive design 
+- Clean folder structure 
+- Proper naming conventions 
+- Well-commented code 
+- Reusable components when using React 
+5. Submission Instructions 
+Participants must submit: 
+- GitHub repository URL 
+- Live deployed link (Netlify, Vercel, or Firebase Hosting)
+6. Evaluation Criteria 
+- UI and UX quality 
+- Feature completeness 
+- Code structure and readability 
+- ES6 usage 
+- Proper database integration 
+- Creativity 
+- Successful deployment 
+7. Rules 
+- The project must be completed within the 6-hour time limit - Only Firebase or Supabase may be used for backend storage - Heavy resume-builder libraries are not allowed - All code must be written during the event 
+- Clean coding practices are mandatory 
+BEST OF LUCK!
+
+please create this web applications with best animations and responsive UI UX design this project  website so please so create this goos looking website  only frontend
