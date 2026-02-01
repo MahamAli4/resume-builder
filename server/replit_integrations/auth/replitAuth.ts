@@ -5,7 +5,7 @@ import passport from "passport";
 import session from "express-session";
 import type { Express, RequestHandler } from "express";
 import memoize from "memoizee";
-import connectPg from "connect-pg-simple";
+import connectSqlite3 from "connect-sqlite3";
 import { authStorage } from "./storage";
 
 const getOidcConfig = memoize(
@@ -20,21 +20,22 @@ const getOidcConfig = memoize(
 
 export function getSession() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
-  const pgStore = connectPg(session);
-  const sessionStore = new pgStore({
-    conString: process.env.DATABASE_URL,
-    createTableIfMissing: false,
-    ttl: sessionTtl,
-    tableName: "sessions",
+  const SQLiteStore = connectSqlite3(session);
+  const sessionStore = new SQLiteStore({
+    db: "sqlite.db",
+    dir: ".", // Database directory
+    table: "sessions",
+    concurrentDB: true // recommended for WAL mode
   });
+
   return session({
-    secret: process.env.SESSION_SECRET!,
+    secret: process.env.SESSION_SECRET || "default_secret_dev",
     store: sessionStore,
     resave: false,
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === "production", // Secure only in prod or if https
       maxAge: sessionTtl,
     },
   });

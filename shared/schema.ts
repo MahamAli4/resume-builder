@@ -1,19 +1,19 @@
-import { pgTable, text, serial, timestamp, jsonb, varchar } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
+import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { users } from "./models/auth";
+import { sql } from "drizzle-orm";
 
 export * from "./models/auth";
 
-export const resumes = pgTable("resumes", {
-  id: serial("id").primaryKey(),
-  userId: varchar("user_id").notNull().references(() => users.id),
+export const resumes = sqliteTable("resumes", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  userId: text("user_id").notNull().references(() => users.id),
   title: text("title").notNull(),
-  content: jsonb("content").notNull(), // Stores the structured resume data
+  content: text("content", { mode: "json" }).notNull(), // Stores the structured resume data
   templateId: text("template_id").notNull().default("modern"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`),
 });
 
 export const resumeContentSchema = z.object({
