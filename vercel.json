@@ -1,17 +1,11 @@
 {
-    "//": "Force redeploy for static site fix",
     "version": 2,
-    "buildCommand": "vite build -c vite.config.ts",
+    "buildCommand": "npx vite build -c vite.config.ts",
     "outputDirectory": "dist/public",
-    "cleanUrls": true,
-    "framework": "vite",
-    "routes": [
+    "rewrites": [
         {
-            "handle": "filesystem"
-        },
-        {
-            "src": "/(.*)",
-            "dest": "/index.html"
+            "source": "/(.*)",
+            "destination": "/index.html"
         }
     ]
 }
