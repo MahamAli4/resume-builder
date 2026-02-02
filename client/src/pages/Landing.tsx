@@ -184,6 +184,82 @@ function AnimatedCounter({ end, duration = 2000 }: { end: number; duration?: num
   return <span>{count.toLocaleString()}</span>;
 }
 
+function StepCard({ step, index }: { step: { number: string; title: string; description: string }; index: number }) {
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
+  const mouseX = useSpring(x, { stiffness: 50, damping: 20 });
+  const mouseY = useSpring(y, { stiffness: 50, damping: 20 });
+
+  const rotateX = useTransform(mouseY, [-0.5, 0.5], ["10deg", "-10deg"]);
+  const rotateY = useTransform(mouseX, [-0.5, 0.5], ["-10deg", "10deg"]);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+    const mouseXPos = e.clientX - rect.left;
+    const mouseYPos = e.clientY - rect.top;
+    const xPct = mouseXPos / width - 0.5;
+    const yPct = mouseYPos / height - 0.5;
+    x.set(xPct);
+    y.set(yPct);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: index * 0.15 }}
+      viewport={{ once: true }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{ perspective: 1000 }}
+      className="group relative"
+    >
+      <motion.div
+        style={{
+          rotateX,
+          rotateY,
+          transformStyle: "preserve-3d",
+        }}
+        className="relative h-full bg-card/40 backdrop-blur-md border border-border/50 rounded-3xl p-8 shadow-xl transition-all duration-300 group-hover:shadow-primary/10 group-hover:border-primary/30 flex flex-col items-center text-center overflow-hidden"
+      >
+        {/* Glow effect */}
+        <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-purple-500/20 rounded-3xl blur opacity-0 group-hover:opacity-100 transition duration-500" />
+
+        <div
+          className="relative w-16 h-16 mb-6 rounded-2xl bg-gradient-to-br from-primary to-purple-500 flex items-center justify-center text-white font-bold text-2xl shadow-lg shadow-primary/25"
+          style={{ transform: "translateZ(40px)" }}
+        >
+          {step.number}
+        </div>
+        <h3
+          className="relative text-xl font-bold mb-3 bg-clip-text text-transparent bg-gradient-to-b from-foreground to-foreground/70"
+          style={{ transform: "translateZ(30px)" }}
+        >
+          {step.title}
+        </h3>
+        <p
+          className="relative text-muted-foreground leading-relaxed"
+          style={{ transform: "translateZ(20px)" }}
+        >
+          {step.description}
+        </p>
+
+        {/* Decorative corner accent */}
+        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+          <Zap size={40} className="text-primary" />
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
 
 export default function Landing() {
   const { user, isLoading } = useAuth();
@@ -552,20 +628,7 @@ export default function Landing() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {steps.map((step, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: index * 0.15 }}
-                viewport={{ once: true }}
-                className="text-center"
-              >
-                <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-primary to-purple-500 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-primary/25">
-                  {step.number}
-                </div>
-                <h3 className="text-lg font-semibold mb-2">{step.title}</h3>
-                <p className="text-muted-foreground text-sm">{step.description}</p>
-              </motion.div>
+              <StepCard key={index} step={step} index={index} />
             ))}
           </div>
 
