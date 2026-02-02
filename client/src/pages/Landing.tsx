@@ -2,14 +2,14 @@ import { Link } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { motion } from "framer-motion";
-import { 
-  FileText, 
-  Sparkles, 
-  Layout, 
-  ArrowRight, 
-  Clock, 
-  Shield, 
+import { motion, useMotionValue, useTransform, useSpring } from "framer-motion";
+import {
+  FileText,
+  Sparkles,
+  Layout,
+  ArrowRight,
+  Clock,
+  Shield,
   CheckCircle2,
   Users,
   Zap,
@@ -22,12 +22,21 @@ import {
   Pencil
 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { Navbar } from "@/components/Navbar";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+  type CarouselApi,
+} from "@/components/ui/carousel";
 
 const testimonials = [
   {
@@ -175,44 +184,50 @@ function AnimatedCounter({ end, duration = 2000 }: { end: number; duration?: num
   return <span>{count.toLocaleString()}</span>;
 }
 
-function ThemeToggle() {
-  const [isDark, setIsDark] = useState(false);
-
-  useEffect(() => {
-    const stored = localStorage.getItem('theme');
-    if (stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      setIsDark(true);
-      document.documentElement.classList.add('dark');
-    }
-  }, []);
-
-  const toggleTheme = () => {
-    setIsDark(!isDark);
-    if (isDark) {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    } else {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    }
-  };
-
-  return (
-    <Button 
-      variant="ghost" 
-      size="icon" 
-      onClick={toggleTheme}
-      data-testid="button-theme-toggle"
-      className="rounded-full"
-    >
-      {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-    </Button>
-  );
-}
 
 export default function Landing() {
   const { user, isLoading } = useAuth();
   const [testimonialIndex, setTestimonialIndex] = useState(0);
+  const [api, setApi] = useState<CarouselApi>();
+
+  useEffect(() => {
+    if (!api) {
+      return;
+    }
+
+    const intervalId = setInterval(() => {
+      api.scrollNext();
+    }, 2000);
+
+    return () => clearInterval(intervalId);
+  }, [api]);
+
+  // 3D Tilt Effect Logic
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
+  const mouseX = useSpring(x, { stiffness: 50, damping: 20 });
+  const mouseY = useSpring(y, { stiffness: 50, damping: 20 });
+
+  const rotateX = useTransform(mouseY, [-0.5, 0.5], ["15deg", "-15deg"]);
+  const rotateY = useTransform(mouseX, [-0.5, 0.5], ["-15deg", "15deg"]);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    const xPct = mouseX / width - 0.5;
+    const yPct = mouseY / height - 0.5;
+    x.set(xPct);
+    y.set(yPct);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
 
   const nextTestimonial = () => {
     setTestimonialIndex((prev) => (prev + 1) % testimonials.length);
@@ -225,53 +240,14 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
-      <nav className="fixed w-full z-50 bg-background/95 backdrop-blur-md border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16 gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white shadow-lg shadow-primary/25">
-                <FileText size={20} />
-              </div>
-              <span className="font-bold text-xl tracking-tight">ResuMakers</span>
-            </div>
-            <div className="hidden md:flex items-center gap-8">
-              <a href="#features" className="text-muted-foreground hover:text-primary transition-colors text-sm font-medium">Features</a>
-              <a href="#templates" className="text-muted-foreground hover:text-primary transition-colors text-sm font-medium">Templates</a>
-              <a href="#testimonials" className="text-muted-foreground hover:text-primary transition-colors text-sm font-medium">Reviews</a>
-              <a href="#faq" className="text-muted-foreground hover:text-primary transition-colors text-sm font-medium">FAQ</a>
-            </div>
-            <div className="flex items-center gap-3">
-              <ThemeToggle />
-              {isLoading ? (
-                <div className="w-28 h-10 bg-muted rounded-lg animate-pulse" />
-              ) : user ? (
-                <Link href="/dashboard">
-                  <Button data-testid="button-dashboard">Dashboard</Button>
-                </Link>
-              ) : (
-                <>
-                  <Button variant="outline" asChild data-testid="button-login" className="hidden sm:flex">
-                    <a href="/api/login">Log in</a>
-                  </Button>
-                  <Button asChild data-testid="button-get-started-nav">
-                    <a href="/api/login">
-                      <Pencil className="w-4 h-4 mr-2" />
-                      Build my resume
-                    </a>
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Navbar />
 
       {/* Hero Section */}
       <section className="pt-24 pb-12 lg:pt-32 lg:pb-20 overflow-hidden bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Column - Text */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
@@ -283,15 +259,15 @@ export default function Landing() {
               <p className="text-lg text-muted-foreground mb-8">
                 Create an ATS-friendly, professional resume with our AI-powered builder — trusted by top recruiters.
               </p>
-              
+
               <div className="flex flex-wrap gap-4 mb-12">
                 <Button variant="outline" size="lg" className="h-12 px-6 rounded-full" asChild data-testid="button-improve-resume">
-                  <a href={user ? "/dashboard" : "/api/login"}>
+                  <a href={user ? "/dashboard" : "/auth"}>
                     Improve my resume
                   </a>
                 </Button>
                 <Button size="lg" className="h-12 px-6 rounded-full shadow-lg shadow-primary/30" asChild data-testid="button-create-resume">
-                  <a href={user ? "/dashboard" : "/api/login"}>
+                  <a href={user ? "/dashboard" : "/auth"}>
                     Create new resume
                   </a>
                 </Button>
@@ -317,157 +293,62 @@ export default function Landing() {
             </motion.div>
 
             {/* Right Column - Resume Previews */}
-            <motion.div 
+            {/* Right Column - 3D Image */}
+            <motion.div
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.7, delay: 0.2 }}
-              className="relative h-[500px] lg:h-[600px]"
+              className="relative flex items-center justify-center p-8"
+              onMouseMove={handleMouseMove}
+              onMouseLeave={handleMouseLeave}
+              style={{ perspective: 1000 }}
             >
-              {/* Main Resume - Center */}
-              <motion.div 
-                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-64 sm:w-72 z-20"
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.5, delay: 0.3 }}
+              <motion.div
+                style={{
+                  rotateX,
+                  rotateY,
+                  transformStyle: "preserve-3d",
+                }}
+                className="relative z-20 w-full max-w-md mx-auto"
               >
-                <div className="bg-card rounded-lg shadow-2xl border border-border overflow-hidden">
-                  <div className="p-4 bg-card">
-                    {/* Resume Header */}
-                    <div className="text-xs font-semibold mb-1">Lucy Liu, Accountant</div>
-                    <div className="text-[8px] text-muted-foreground mb-3">New York, NY | lucy@email.com</div>
-                    
-                    {/* Summary */}
-                    <div className="mb-3">
-                      <div className="text-[7px] font-bold text-primary mb-1 uppercase tracking-wider">Summary</div>
-                      <div className="space-y-0.5">
-                        <div className="h-1 bg-muted rounded w-full" />
-                        <div className="h-1 bg-muted rounded w-11/12" />
-                        <div className="h-1 bg-muted rounded w-10/12" />
-                      </div>
-                    </div>
-                    
-                    {/* Experience */}
-                    <div className="mb-3">
-                      <div className="text-[7px] font-bold text-primary mb-1 uppercase tracking-wider">Work Experience</div>
-                      <div className="space-y-2">
-                        <div>
-                          <div className="h-1.5 bg-foreground/20 rounded w-3/4 mb-1" />
-                          <div className="space-y-0.5">
-                            <div className="h-1 bg-muted rounded w-full" />
-                            <div className="h-1 bg-muted rounded w-5/6" />
-                          </div>
-                        </div>
-                        <div>
-                          <div className="h-1.5 bg-foreground/20 rounded w-2/3 mb-1" />
-                          <div className="space-y-0.5">
-                            <div className="h-1 bg-muted rounded w-full" />
-                            <div className="h-1 bg-muted rounded w-4/5" />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                <motion.div
+                  animate={{ y: [0, -20, 0] }}
+                  transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                  className="relative"
+                >
+                  <div
+                    className="absolute inset-0 bg-primary/20 blur-3xl rounded-full -z-10"
+                    style={{ transform: "translateZ(-50px)" }}
+                  />
+                  <img
+                    src="/template/1.png"
+                    alt="Resume Template Preview"
+                    className="w-full h-auto rounded-xl shadow-2xl border-4 border-white/10"
+                    style={{
+                      transform: "translateZ(20px)",
+                      boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)"
+                    }}
+                  />
 
-                    {/* Education */}
-                    <div>
-                      <div className="text-[7px] font-bold text-primary mb-1 uppercase tracking-wider">Education</div>
-                      <div className="h-1.5 bg-foreground/20 rounded w-1/2 mb-1" />
-                      <div className="h-1 bg-muted rounded w-3/4" />
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
+                  {/* Floating Elements on top of image */}
+                  <motion.div
+                    className="absolute -left-6 top-10 w-12 h-12 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center shadow-lg border border-border"
+                    animate={{ y: [0, -10, 0], rotate: [0, 5, 0] }}
+                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                    style={{ transform: "translateZ(50px)" }}
+                  >
+                    <CheckCircle2 className="w-6 h-6 text-green-500" />
+                  </motion.div>
 
-              {/* Top Right Resume */}
-              <motion.div 
-                className="absolute right-0 top-0 w-48 sm:w-56 z-10"
-                initial={{ y: -20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.6, delay: 0.5 }}
-                whileHover={{ scale: 1.02, rotate: -1 }}
-              >
-                <div className="bg-card rounded-lg shadow-xl border border-border overflow-hidden">
-                  {/* Header with photo */}
-                  <div className="p-3 bg-card">
-                    <div className="flex gap-2 mb-2">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-200 to-amber-400 flex items-center justify-center text-amber-800 font-bold text-xs">AW</div>
-                      <div className="flex-1">
-                        <div className="text-[9px] font-semibold">AIDEN WILLIAMS</div>
-                        <div className="text-[7px] text-muted-foreground">Senior Developer</div>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <div className="text-[6px] font-bold text-primary mb-1">WORK EXPERIENCE</div>
-                        <div className="space-y-0.5">
-                          <div className="h-0.5 bg-muted rounded w-full" />
-                          <div className="h-0.5 bg-muted rounded w-4/5" />
-                          <div className="h-0.5 bg-muted rounded w-5/6" />
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-[6px] font-bold text-primary mb-1">SKILLS</div>
-                        <div className="flex flex-wrap gap-0.5">
-                          <div className="h-2 w-6 bg-primary/20 rounded-sm" />
-                          <div className="h-2 w-8 bg-primary/20 rounded-sm" />
-                          <div className="h-2 w-5 bg-primary/20 rounded-sm" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-
-              {/* Bottom Left Resume */}
-              <motion.div 
-                className="absolute left-0 bottom-8 w-44 sm:w-52 z-10"
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.6, delay: 0.6 }}
-                whileHover={{ scale: 1.02, rotate: 1 }}
-              >
-                <div className="bg-card rounded-lg shadow-xl border border-border overflow-hidden">
-                  <div className="bg-slate-700 dark:bg-slate-800 p-2">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-slate-500" />
-                      <div>
-                        <div className="text-[8px] font-semibold text-white">MIKE CHEN</div>
-                        <div className="text-[6px] text-slate-300">Product Manager</div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="p-2 bg-card">
-                    <div className="space-y-1">
-                      <div className="h-1 bg-muted rounded w-full" />
-                      <div className="h-1 bg-muted rounded w-5/6" />
-                      <div className="h-1 bg-muted rounded w-4/5" />
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-
-              {/* Floating Elements */}
-              <motion.div 
-                className="absolute left-4 top-20 w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center"
-                animate={{ y: [0, -10, 0] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-              >
-                <CheckCircle2 className="w-4 h-4 text-primary" />
-              </motion.div>
-
-              <motion.div 
-                className="absolute right-12 bottom-24 w-10 h-10 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center"
-                animate={{ y: [0, 10, 0] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-              >
-                <Star className="w-5 h-5 text-green-600 dark:text-green-400" />
-              </motion.div>
-
-              <motion.div 
-                className="absolute left-20 bottom-4 w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center"
-                animate={{ y: [0, -8, 0] }}
-                transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-              >
-                <Sparkles className="w-3 h-3 text-purple-600 dark:text-purple-400" />
+                  <motion.div
+                    className="absolute -right-4 bottom-20 w-14 h-14 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center shadow-lg border border-border"
+                    animate={{ y: [0, 15, 0], scale: [1, 1.05, 1] }}
+                    transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+                    style={{ transform: "translateZ(60px)" }}
+                  >
+                    <Star className="w-7 h-7 text-yellow-500 fill-yellow-500" />
+                  </motion.div>
+                </motion.div>
               </motion.div>
             </motion.div>
           </div>
@@ -505,7 +386,7 @@ export default function Landing() {
 
           <div className="relative max-w-4xl mx-auto">
             <div className="overflow-hidden">
-              <motion.div 
+              <motion.div
                 key={testimonialIndex}
                 initial={{ opacity: 0, x: 50 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -568,50 +449,52 @@ export default function Landing() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
-            {[...Array(5)].map((_, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: i * 0.1 }}
-                viewport={{ once: true }}
-                className="group cursor-pointer"
-              >
-                <div className="aspect-[3/4] bg-card rounded-xl overflow-hidden border-2 border-transparent hover:border-primary transition-all duration-300 shadow-sm hover:shadow-xl">
-                  <div className={`h-full p-3 ${
-                    i === 0 ? 'bg-gradient-to-b from-blue-50 to-card dark:from-blue-950/30' :
-                    i === 1 ? 'bg-gradient-to-b from-purple-50 to-card dark:from-purple-950/30' :
-                    i === 2 ? 'bg-gradient-to-b from-green-50 to-card dark:from-green-950/30' :
-                    i === 3 ? 'bg-gradient-to-b from-orange-50 to-card dark:from-orange-950/30' :
-                    'bg-gradient-to-b from-pink-50 to-card dark:from-pink-950/30'
-                  }`}>
-                    <div className={`w-8 h-8 rounded-full mb-2 ${
-                      i === 0 ? 'bg-blue-200 dark:bg-blue-800' :
-                      i === 1 ? 'bg-purple-200 dark:bg-purple-800' :
-                      i === 2 ? 'bg-green-200 dark:bg-green-800' :
-                      i === 3 ? 'bg-orange-200 dark:bg-orange-800' :
-                      'bg-pink-200 dark:bg-pink-800'
-                    }`} />
-                    <div className="h-2 bg-muted rounded w-3/4 mb-1" />
-                    <div className="h-1.5 bg-muted/50 rounded w-1/2 mb-3" />
-                    <div className="space-y-1.5">
-                      <div className="h-1.5 bg-muted/50 rounded w-full" />
-                      <div className="h-1.5 bg-muted/50 rounded w-5/6" />
-                      <div className="h-1.5 bg-muted/50 rounded w-4/5" />
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-3 text-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button size="sm" variant="secondary">Choose Template</Button>
-                </div>
-              </motion.div>
-            ))}
+          <div className="w-full max-w-5xl mx-auto">
+            <Carousel
+              opts={{
+                align: "start",
+                loop: true,
+              }}
+              setApi={setApi}
+              className="w-full"
+            >
+              <CarouselContent className="-ml-2 md:-ml-4">
+                {Array.from({ length: 20 }).map((_, index) => (
+                  <CarouselItem key={index} className="pl-2 md:pl-4 basis-1/2 md:basis-1/3 lg:basis-1/4">
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      whileInView={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.4 }}
+                      viewport={{ once: true }}
+                      className="group relative cursor-pointer"
+                    >
+                      <div className="aspect-[3/4] rounded-xl overflow-hidden border-2 border-transparent hover:border-primary transition-all duration-300 shadow-sm hover:shadow-xl bg-muted/20">
+                        <img
+                          src={`/template/${index + 1}.png`}
+                          alt={`Resume Template ${index + 1}`}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        />
+                        {/* Overlay */}
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                          <Button size="sm" variant="secondary" className="translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                            Use Template
+                          </Button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <div className="hidden md:block">
+                <CarouselPrevious />
+                <CarouselNext />
+              </div>
+            </Carousel>
           </div>
 
           <div className="text-center mt-10">
             <Button size="lg" variant="outline" asChild data-testid="button-view-templates">
-              <a href={user ? "/dashboard" : "/api/login"}>
+              <a href={user ? "/dashboard" : "/auth"}>
                 View All Templates <ArrowRight className="ml-2 h-4 w-4" />
               </a>
             </Button>
@@ -651,7 +534,7 @@ export default function Landing() {
 
           <div className="text-center mt-12">
             <Button size="lg" asChild data-testid="button-create-resume-features">
-              <a href={user ? "/dashboard" : "/api/login"}>
+              <a href={user ? "/dashboard" : "/auth"}>
                 Create My Resume <ArrowRight className="ml-2 h-4 w-4" />
               </a>
             </Button>
@@ -688,7 +571,7 @@ export default function Landing() {
 
           <div className="text-center mt-12">
             <Button size="lg" asChild data-testid="button-create-resume-steps">
-              <a href={user ? "/dashboard" : "/api/login"}>
+              <a href={user ? "/dashboard" : "/auth"}>
                 Get Started Now <ArrowRight className="ml-2 h-4 w-4" />
               </a>
             </Button>
@@ -705,8 +588,8 @@ export default function Landing() {
 
           <Accordion type="single" collapsible className="space-y-4">
             {faqs.map((faq, index) => (
-              <AccordionItem 
-                key={index} 
+              <AccordionItem
+                key={index}
                 value={`item-${index}`}
                 className="bg-card rounded-xl border px-6"
               >
@@ -732,7 +615,7 @@ export default function Landing() {
             Join thousands of job seekers who landed their dream jobs with our professional resume templates.
           </p>
           <Button size="lg" variant="secondary" className="h-14 px-10 text-lg" asChild data-testid="button-create-resume-cta">
-            <a href={user ? "/dashboard" : "/api/login"}>
+            <a href={user ? "/dashboard" : "/auth"}>
               Create My Resume <ArrowRight className="ml-2 h-5 w-5" />
             </a>
           </Button>

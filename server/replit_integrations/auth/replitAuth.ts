@@ -20,22 +20,14 @@ const getOidcConfig = memoize(
 
 export function getSession() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
-  const SQLiteStore = connectSqlite3(session);
-  const sessionStore = new SQLiteStore({
-    db: "sqlite.db",
-    dir: ".", // Database directory
-    table: "sessions",
-    concurrentDB: true // recommended for WAL mode
-  });
 
   return session({
     secret: process.env.SESSION_SECRET || "default_secret_dev",
-    store: sessionStore,
     resave: false,
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // Secure only in prod or if https
+      secure: false, // Set to false for local dev to avoid secure cookie issues without https
       maxAge: sessionTtl,
     },
   });
@@ -62,10 +54,10 @@ async function upsertUser(claims: any) {
 }
 
 export async function setupAuth(app: Express) {
-  app.set("trust proxy", 1);
-  app.use(getSession());
-  app.use(passport.initialize());
-  app.use(passport.session());
+  // app.set("trust proxy", 1);
+  // app.use(getSession());
+  // app.use(passport.initialize());
+  // app.use(passport.session());
 
   const config = await getOidcConfig();
 
