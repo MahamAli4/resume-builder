@@ -1,0 +1,16 @@
+{
+    "version": 2,
+    "buildCommand": "vite build -c vite.config.ts",
+    "outputDirectory": "dist/public",
+    "cleanUrls": true,
+    "framework": "vite",
+    "routes": [
+        {
+            "handle": "filesystem"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "/index.html"
+        }
+    ]
+}
